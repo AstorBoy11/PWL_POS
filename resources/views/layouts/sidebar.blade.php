@@ -63,9 +63,18 @@
         </a>
       </li>
       <li class="nav-item">
-        <a href="{{ url('/barang') }}" class="nav-link {{ ($activeMenu == 'penjualan') ? 'active' : '' }}">
+        <a href="{{ url('/penjualan') }}" class="nav-link {{ ($activeMenu == 'penjualan') ? 'active' : '' }}">
           <i class="nav-icon fas fa-cash-register"></i>
           <p>Transaksi Penjualan</p>
+        </a>
+      </li>
+    </ul>
+    <div class="logout-wrapper mt-auto">
+    <ul class="nav nav-pills nav-sidebar flex-column">
+      <li class="nav-item">
+        <a href="{{ url('/logout') }}" class="nav-link">
+          <i class="nav-icon fas fa-sign-out-alt text-danger"></i>
+          <p>Logout</p>
         </a>
       </li>
     </ul>
