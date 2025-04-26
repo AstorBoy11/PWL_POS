@@ -1,47 +1,46 @@
-<form action="{{ url('/barang/ajax') }}" method="POST" id="form-tambah-barang">
+<form action="{{ url('/barang/ajax') }}" method="POST" id="form-tambah">
     @csrf
     <div id="modal-master" class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Tambah Data Barang</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <h5 class="modal-title" id="exampleModalLabel">Tambah Data Barang</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="kategori_nama">Kategori</label>
+                    <label>Kategori Barang</label>
                     <select name="kategori_id" id="kategori_id" class="form-control" required>
-                        <option value="">-- Pilih Kategori --</option>
-                        @foreach ($kategori as $item)
-                            <option value="{{ $item->kategori_id }}">{{ $item->kategori_nama }}</option>
+                        <option value="">- Pilih Level -</option>
+                        @foreach ($kategori as $k)
+                            <option value="{{ $k->kategori_id }}">{{ $k->kategori_nama }}</option>
                         @endforeach
                     </select>
-                    <small id="error-kategori_id" class="error-text text-danger"></small>
+                    <small id="error-level_id" class="error-text form-text text-danger"></small>
                 </div>
-
                 <div class="form-group">
-                    <label for="barang_kode">Kode Barang</label>
-                    <input type="text" name="barang_kode" id="barang_kode" class="form-control" required>
-                    <small id="error-barang_kode" class="error-text text-danger"></small>
+                    <label>Kode</label>
+                    <input value="" type="text" name="barang_kode" id="barang_kode" class="form-control"
+                        required>
+                    <small id="error-barang_kode" class="error-text form-text text-danger"></small>
                 </div>
-
                 <div class="form-group">
-                    <label for="barang_nama">Nama Barang</label>
-                    <input type="text" name="barang_nama" id="barang_nama" class="form-control" required>
-                    <small id="error-barang_nama" class="error-text text-danger"></small>
+                    <label>Nama</label>
+                    <input value="" type="text" name="barang_nama" id="barang_nama" class="form-control"
+                        required>
+                    <small id="error-barang_nama" class="error-text form-text text-danger"></small>
                 </div>
-
                 <div class="form-group">
-                    <label for="harga_beli">Harga Beli</label>
-                    <input type="number" name="harga_beli" id="harga_beli" class="form-control" required>
-                    <small id="error-harga_beli" class="error-text text-danger"></small>
+                    <label>Harga Beli</label>
+                    <input value="" type="number" name="harga_beli" id="harga_beli" class="form-control"
+                        required>
+                    <small id="error-harga_beli" class="error-text form-text text-danger"></small>
                 </div>
-
                 <div class="form-group">
-                    <label for="harga_jual">Harga Jual</label>
-                    <input type="number" name="harga_jual" id="harga_jual" class="form-control" required>
-                    <small id="error-harga_jual" class="error-text text-danger"></small>
+                    <label>Harga Jual</label>
+                    <input value="" type="number" name="harga_jual" id="harga_jual" class="form-control"
+                        required>
+                    <small id="error-harga_jual" class="error-text form-text text-danger"></small>
                 </div>
             </div>
             <div class="modal-footer">
@@ -51,20 +50,18 @@
         </div>
     </div>
 </form>
-
 <script>
     $(document).ready(function() {
-        let tableBarang = $('#table_barang').DataTable(); // Pastikan ID tabel sesuai
-
-        $("#form-tambah-barang").validate({
+        $("#form-tambah").validate({
             rules: {
                 kategori_id: {
-                    required: true
+                    required: true,
+                    number: true
                 },
                 barang_kode: {
                     required: true,
-                    minlength: 2,
-                    maxlength: 15
+                    minlength: 3,
+                    maxlength: 10
                 },
                 barang_nama: {
                     required: true,
@@ -73,25 +70,18 @@
                 },
                 harga_beli: {
                     required: true,
-                    number: true,
-                    min: 0
+                    number: true
                 },
                 harga_jual: {
                     required: true,
-                    number: true,
-                    min: 0
-                }
+                    number: true
+                },
             },
-            submitHandler: function(form, event) {
-                event.preventDefault(); // Mencegah pengiriman form default
-                console.log("Form action: ", form.action); // Debug URL
-
+            submitHandler: function(form) {
                 $.ajax({
-                    url: form.action, // Pastikan URL sesuai
-                    type: 'POST', // Harus POST
+                    url: form.action,
+                    type: form.method,
                     data: $(form).serialize(),
-                    dataType: 'json',
-                    contentType: 'application/x-www-form-urlencoded',
                     success: function(response) {
                         if (response.status) {
                             $('#myModal').modal('hide');
@@ -100,41 +90,31 @@
                                 title: 'Berhasil',
                                 text: response.message
                             });
-                            $('#form-tambah-barang')[0].reset();
-                            $('#table_barang').DataTable().ajax.reload();
+                            dataBarang.ajax.reload();
                         } else {
                             $('.error-text').text('');
-                            if (response.msgField) {
-                                $.each(response.msgField, function(prefix, val) {
-                                    $('#error-' + prefix).text(val[0]);
-                                });
-                            }
+                            $.each(response.msgField, function(prefix, val) {
+                                $('#error-' + prefix).text(val[0]);
+                            });
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Terjadi Kesalahan',
                                 text: response.message
                             });
                         }
-                    },
-                    error: function(xhr) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error!',
-                            text: 'Terjadi kesalahan saat menghubungi server'
-                        });
                     }
                 });
-                return false; // Pastikan form tidak dikirim ulang
+                return false;
             },
             errorElement: 'span',
             errorPlacement: function(error, element) {
                 error.addClass('invalid-feedback');
                 element.closest('.form-group').append(error);
             },
-            highlight: function(element) {
+            highlight: function(element, errorClass, validClass) {
                 $(element).addClass('is-invalid');
             },
-            unhighlight: function(element) {
+            unhighlight: function(element, errorClass, validClass) {
                 $(element).removeClass('is-invalid');
             }
         });

@@ -5,10 +5,10 @@
         <div class="card-header">
             <h3 class="card-title">{{ $page->title }}</h3>
             <div class="card-tools">
-                <a class="btn btn-sm btn-primary mt-1" href="{{ url('suplier/create') }}">Tambah</a>
-                <button onclick="modalAction('{{ url('suplier/create_ajax') }}')" class="btn btn-sm btn-success mt-1">
-                    Tambah Ajax
-                </button>
+                <button onclick="modalAction('{{ url('/suplier/import') }}')" class="btn btn-info btn-sm mt-1">Import Suplier</button>
+                    <a href="{{ url('/suplier/export_excel') }}" class="btn btn-primary"><i class="fa fa-file excel"></i> Export Suplier Excel</a>
+                    <a href="{{ url('/suplier/export_pdf') }}" class="btn btn-danger"><i class="fa fa-file pdf"></i> Export Suplier PDF</a>
+                <button onclick="modalAction('{{ url('suplier/create_ajax') }}')" class="btn btn-sm btn-success mt-1">Tambah Ajax</button>
             </div>
         </div>
         <div class="card-body">
@@ -48,13 +48,17 @@
             });
         }
 
+        var tableSuplier;
         $(document).ready(function() {
-            var dataSuplier = $('#table_suplier').DataTable({
+            tableSuplier = $('#table_suplier').DataTable({
                 serverSide: true,
                 ajax: {
                     "url": "{{ url('suplier/list') }}",
                     "dataType": "json",
-                    "type": "GET"
+                    "type": "GET",
+                    "data": function(d) {
+                        d.filter_suplier = $('.filter_suplier').val();
+                    }
                 },
                 columns: [{
                         data: "DT_RowIndex",
@@ -87,6 +91,14 @@
                         searchable: false
                     }
                 ]
+            });
+            $('#table_suplier_filter input').unbind().bind().on('keyup', function(e) {
+                if (e.keyCode == 13) { // enter key
+                    tableSuplier.search(this.value).draw();
+                }
+            });
+            $('.filter_suplier').change(function() {
+                tableSuplier.draw();
             });
         });
     </script>
