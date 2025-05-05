@@ -1,63 +1,49 @@
 <?php
 
-namespace App\Models;
+namespace App\Http\Controllers\Api;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Foundation\Auth\User as Authenticatable; 
-use Tymon\JWTAuth\Contracts\JWTSubject;
+use App\Models\UserModel;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
-class UserModel extends Authenticatable implements JWTSubject
-
+class RegisterController extends Controller
 {
-    public function getJWTIdentifier(){
-    
-        return $this->getKey();
-    }
-
-    public function getJWTCustomClaims(){
-        return [];
-    }
-
-    use HasFactory;
-
-    protected $table = 'm_user';
-    protected $primaryKey = 'user_id';
-    protected $fillable = ['username', 'password', 'nama', 'level_id', 'created_at', 'updated_at'];
-
-    protected $hidden   = ['password']; // jangan di tampilkan saat select
-
-    protected $casts    = ['password' => 'hashed']; // casting password agar otomatis di hash
-
     /**
-     * Relasi ke tabel level
+     * Handle the registration request.
      */
-    public function level(): BelongsTo
+    public function __invoke(Request $request)
     {
-        return $this->belongsTo(LevelModel::class, 'level_id', 'level_id');
-    }
+        // Validasi input
+        $validator = Validator::make($request->all(), [
+            'username'  => 'required|unique:user_models,username',
+            'nama'      => 'required',
+            'password'  => 'required|min:5|confirmed',
+            'level_id'  => 'required|integer',
+            'image'     => 'required|string',
+        ]);
 
-    /**
-     * Mendapatkan nama role
-     */
-    public function getRoleName() : string
-    {
-        return $this->level->level_nama;
-    }
+        // Jika validasi gagal
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors'  => $validator->errors()
+            ], 422);
+        }
 
-    /**
-     * Cek apakah user memiliki role tertentu
-     */
-    public function hasRole(string $role) : bool
-    {
-        return $this->level->level_nama === $role;
-    }
+        // Simpan user baru
+        $user = UserModel::create([
+            'username'  => $request->username,
+            'nama'      => $request->nama,
+            'password'  => bcrypt($request->password),
+            'level_id'  => $request->level_id,
+            'image'     => $request->image,
+        ]);
 
-    /**
-     * Mendapatkan kode role
-     */
-    public function getRoleCode() {
-        return $this->level->level_kode;
+        // Respons berhasil
+        return response()->json([
+            'success' => true,
+            'user'    => $user,
+        ], 201);
     }
 }
